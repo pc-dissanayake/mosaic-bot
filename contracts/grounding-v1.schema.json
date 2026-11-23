@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mosaic.invalid/contracts/grounding.v1.json",
+  "title": "MOSAIC GroundingPacket v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_version",
+    "request_id",
+    "question",
+    "intent",
+    "evidence",
+    "allowed_links",
+    "constraints"
+  ],
+  "properties": {
+    "contract_version": { "const": "grounding.v1" },
+    "request_id": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9._:-]+$"
+    },
+    "question": { "type": "string", "minLength": 1, "maxLength": 500 },
+    "intent": {
+      "type": "string",
+      "enum": [
+        "my_open_items",
+        "my_queue",
+        "vault_gaps",
+        "what_can_i_apply_for",
+        "why_cant_i_apply",
+        "whats_next",
+        "explain_workflow",
+        "my_profile_facts",
+        "unknown"
+      ]
+    },
+    "evidence": {
+      "type": "array",
+      "maxItems": 64,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["evidence_id", "kind", "label", "state", "facts", "source", "source_version"],
+        "properties": {
+          "evidence_id": { "type": "string", "pattern": "^e[1-9][0-9]{0,5}$" },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "workflow_eligibility",
+              "workflow_explanation",
+              "application_status",
+              "queue_item",
+              "document_requirement",
+              "profile_fact",
+              "system_limitation"
+            ]
+          },
+          "label": { "type": "string", "minLength": 1, "maxLength": 240 },
+          "state": { "type": "string", "enum": ["eligible", "blocked", "open", "waiting", "complete", "missing", "present", "unknown"] },
+          "facts": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "blocking_reasons": { "type": "array", "maxItems": 12, "items": { "type": "string", "maxLength": 240 } },
+              "status_label": { "type": ["string", "null"], "maxLength": 160 },
+              "next_holder_label": { "type": ["string", "null"], "maxLength": 160 },
+              "document_label": { "type": ["string", "null"], "maxLength": 160 },
+              "value_label": { "type": ["string", "null"], "maxLength": 240 }
+            }
+          },
+          "source": { "type": "string", "minLength": 1, "maxLength": 120 },
+          "source_version": { "type": "string", "minLength": 1, "maxLength": 160 }
+        }
+      }
+    },
+    "allowed_links": {
+      "type": "array",
+      "maxItems": 16,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["label", "href"],
+        "properties": {
+          "label": { "type": "string", "minLength": 1, "maxLength": 160 },
+          "href": { "type": "string", "pattern": "^/" , "maxLength": 300 }
+        }
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["must_refuse_without_evidence", "max_answer_chars"],
+      "properties": {
+        "must_refuse_without_evidence": { "const": true },
+        "max_answer_chars": { "type": "integer", "minimum": 80, "maximum": 4000 }
+      }
+    }
+  }
+}
